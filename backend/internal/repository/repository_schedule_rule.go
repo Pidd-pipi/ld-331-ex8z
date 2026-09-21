@@ -11,6 +11,9 @@ type ScheduleRuleRepository struct{ db *gorm.DB }
 func NewScheduleRuleRepository(db *gorm.DB) *ScheduleRuleRepository {
 	return &ScheduleRuleRepository{db}
 }
+func (r *ScheduleRuleRepository) WithTx(tx *gorm.DB) *ScheduleRuleRepository {
+	return &ScheduleRuleRepository{db: tx}
+}
 func (r *ScheduleRuleRepository) Upsert(v *model.ScheduleRule) error {
 	var existing model.ScheduleRule
 	e := r.db.Where("department_id=?", v.DepartmentID).First(&existing).Error

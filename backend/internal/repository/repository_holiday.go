@@ -7,7 +7,10 @@ import (
 
 type HolidayRepository struct{ db *gorm.DB }
 
-func NewHolidayRepository(db *gorm.DB) *HolidayRepository  { return &HolidayRepository{db} }
+func NewHolidayRepository(db *gorm.DB) *HolidayRepository { return &HolidayRepository{db} }
+func (r *HolidayRepository) WithTx(tx *gorm.DB) *HolidayRepository {
+	return &HolidayRepository{db: tx}
+}
 func (r *HolidayRepository) Create(v *model.Holiday) error { return r.db.Create(v).Error }
 func (r *HolidayRepository) List() ([]model.Holiday, error) {
 	var v []model.Holiday

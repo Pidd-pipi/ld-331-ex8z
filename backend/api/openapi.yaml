@@ -1,9 +1,58 @@
 openapi: 3.0.3
-info: {title: 医院智能排班 API, version: 1.0.0}
+info: {title: 医院智能排班 API, version: 1.1.0}
 paths:
   /healthz: {get: {summary: 健康检查}}
   /api/v1/auth/login: {post: {summary: 登录}}
-  /api/v1/schedules: {get: {summary: 查询可视化排班表}}
-  /api/v1/schedules/generate: {post: {summary: 自动生成排班}}
-  /api/v1/shift-requests: {get: {summary: 查询调班申请}, post: {summary: 提交调班申请}}
+  /api/v1/departments:
+    get: {summary: 查询科室}
+    post: {summary: 新建科室}
+  /api/v1/positions: {get: {summary: 查询岗位}, post: {summary: 新建岗位}}
+  /api/v1/staff: {get: {summary: 查询人员（支持 department_id 过滤）}, post: {summary: 新建人员}}
+  /api/v1/schedules:
+    get:
+      summary: 查询可视化排班表
+      parameters:
+        - {name: department_id, in: query, schema: {type: integer}}
+        - {name: staff_id, in: query, schema: {type: integer}}
+        - {name: from, in: query, schema: {type: string, format: date}}
+        - {name: to, in: query, schema: {type: string, format: date}}
+      responses:
+        '200':
+          description: 班表行；has_conflict=true 时 conflict_reasons 给出中文冲突原因
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id: {type: integer}
+                        department_id: {type: integer}
+                        staff_id: {type: integer}
+                        shift_id: {type: integer}
+                        work_date: {type: string, format: date}
+                        note: {type: string}
+                        has_conflict: {type: boolean}
+                        conflict_reasons: {type: string}
+  /api/v1/schedules/generate:
+    post:
+      summary: 自动生成排班（遵守连续工作上限、夜班后不得排白班、节假日优先；无法回避的冲突写入班表行）
+  /api/v1/schedules/{id}:
+    put:
+      summary: 手动调整；按最新规则复核，冲突时整次拒绝（HTTP 409/40901），原班表不变
+  /api/v1/schedule-rules:
+    get: {summary: 查询科室排班规则}
+    put: {summary: 保存科室排班规则}
+  /api/v1/holidays:
+    get: {summary: 查询法定节假日与特殊工作日}
+    post: {summary: 新建节假日}
+  /api/v1/shift-requests:
+    get: {summary: 查询调班申请}
+    post: {summary: 提交调班申请}
+  /api/v1/shift-requests/{id}/review:
+    put:
+      summary: 调班审批；通过前按最新规则复核交换结果，冲突时整次拒绝（HTTP 409/40901），班表与申请状态不变
   /api/v1/schedules/statistics: {get: {summary: 月度工时统计}}

@@ -9,6 +9,9 @@ import (
 type ShiftRepository struct{ db *gorm.DB }
 
 func NewShiftRepository(db *gorm.DB) *ShiftRepository { return &ShiftRepository{db} }
+func (r *ShiftRepository) WithTx(tx *gorm.DB) *ShiftRepository {
+	return &ShiftRepository{db: tx}
+}
 func (r *ShiftRepository) List() ([]model.Shift, error) {
 	var v []model.Shift
 	return v, r.db.Order("id").Find(&v).Error

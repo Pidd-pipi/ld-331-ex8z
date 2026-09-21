@@ -9,7 +9,10 @@ import (
 
 type ScheduleRepository struct{ db *gorm.DB }
 
-func NewScheduleRepository(db *gorm.DB) *ScheduleRepository  { return &ScheduleRepository{db} }
+func NewScheduleRepository(db *gorm.DB) *ScheduleRepository { return &ScheduleRepository{db} }
+func (r *ScheduleRepository) WithTx(tx *gorm.DB) *ScheduleRepository {
+	return &ScheduleRepository{db: tx}
+}
 func (r *ScheduleRepository) Create(v *model.Schedule) error { return r.db.Create(v).Error }
 func (r *ScheduleRepository) Save(v *model.Schedule) error   { return r.db.Save(v).Error }
 func (r *ScheduleRepository) List(dept, staff uint, from, to time.Time) ([]model.Schedule, error) {
@@ -39,4 +42,11 @@ func (r *ScheduleRepository) Find(id uint) (model.Schedule, error) {
 }
 func (r *ScheduleRepository) DeleteRange(dept uint, from, to time.Time) error {
 	return r.db.Where("department_id=? AND work_date>=? AND work_date<=?", dept, from, to).Delete(&model.Schedule{}).Error
+}
+
+// ClearConflicts 清除指定科室、员工在日期窗口内的冲突标记（复核确认无冲突后调用）。
+func (r *ScheduleRepository) ClearConflicts(dept, staff uint, from, to time.Time) error {
+	return r.db.Model(&model.Schedule{}).
+		Where("department_id=? AND staff_id=? AND work_date>=? AND work_date<=?", dept, staff, from, to).
+		Updates(map[string]any{"has_conflict": false, "conflict_reasons": ""}).Error
 }

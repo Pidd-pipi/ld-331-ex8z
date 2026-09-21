@@ -14,6 +14,7 @@ import (
 	"gorm.io/gorm"
 	"log/slog"
 	"os"
+	"time"
 )
 
 func main() {
@@ -45,8 +46,8 @@ func main() {
 	depSvc := service.NewDepartmentService(depRepo, logger)
 	posSvc := service.NewPositionService(posRepo, logger)
 	staffSvc := service.NewStaffService(staffRepo, logger)
-	schedSvc := service.NewScheduleService(schedRepo, staffRepo, shiftRepo, ruleRepo, logger)
-	reqSvc := service.NewShiftRequestService(reqRepo, schedRepo, db, logger)
+	schedSvc := service.NewScheduleService(db, schedRepo, staffRepo, shiftRepo, ruleRepo, holidayRepo, logger)
+	reqSvc := service.NewShiftRequestService(reqRepo, schedRepo, schedSvc, db, logger)
 	ruleSvc := service.NewRuleService(ruleRepo, logger)
 	holidaySvc := service.NewHolidayService(holidayRepo, logger)
 	auditSvc := service.NewAuditService(auditRepo, logger)
@@ -74,4 +75,21 @@ func seed(db *gorm.DB) {
 		db.Create(&u)
 	}
 	db.Create(&model.ScheduleRule{DepartmentID: d.ID, MaxConsecutiveDays: 5, WeekendRotation: true, HolidayPriority: true, ForbidNightToDay: true})
+	// 内置演示用法定节假日（2026 年中秋节、国庆节），生成班表时节假日优先安排休息。
+	for _, h := range []model.Holiday{
+		{Date: mustDate("2026-09-25"), Name: "中秋节", IsWorkday: false, Multiplier: 3},
+		{Date: mustDate("2026-10-01"), Name: "国庆节", IsWorkday: false, Multiplier: 3},
+		{Date: mustDate("2026-10-02"), Name: "国庆节", IsWorkday: false, Multiplier: 2},
+		{Date: mustDate("2026-10-03"), Name: "国庆节", IsWorkday: false, Multiplier: 2},
+	} {
+		db.Create(&h)
+	}
+}
+
+func mustDate(s string) time.Time {
+	t, e := time.ParseInLocation("2006-01-02", s, time.Local)
+	if e != nil {
+		panic(e)
+	}
+	return t
 }
