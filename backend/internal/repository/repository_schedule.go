@@ -40,3 +40,16 @@ func (r *ScheduleRepository) Find(id uint) (model.Schedule, error) {
 func (r *ScheduleRepository) DeleteRange(dept uint, from, to time.Time) error {
 	return r.db.Where("department_id=? AND work_date>=? AND work_date<=?", dept, from, to).Delete(&model.Schedule{}).Error
 }
+
+// UpdateConflictReason stores the latest rule-check result on a schedule row.
+func (r *ScheduleRepository) UpdateConflictReason(id uint, reason string) error {
+	return r.db.Model(&model.Schedule{}).Where("id=?", id).Update("conflict_reason", reason).Error
+}
+
+// ClearConflictRange removes stale conflict markers for a department/date
+// window before a fresh rule-check result is written back.
+func (r *ScheduleRepository) ClearConflictRange(dept uint, from, to time.Time) error {
+	return r.db.Model(&model.Schedule{}).
+		Where("department_id=? AND work_date>=? AND work_date<=? AND conflict_reason<>?", dept, from, to, "").
+		Update("conflict_reason", "").Error
+}

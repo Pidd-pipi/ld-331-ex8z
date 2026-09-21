@@ -4,12 +4,18 @@ import (
 	"errors"
 	"github.com/gbsched/hospital-scheduler/internal/constants"
 	"github.com/gbsched/hospital-scheduler/internal/repository"
+	"github.com/gbsched/hospital-scheduler/internal/service"
 	"github.com/gbsched/hospital-scheduler/pkg/response"
 	"github.com/gin-gonic/gin"
 	"net/http"
 )
 
 func handleError(c *gin.Context, e error) {
+	var conflict *service.ScheduleConflictError
+	if errors.As(e, &conflict) {
+		response.Error(c, http.StatusConflict, constants.CodeConflict, conflict.Error())
+		return
+	}
 	if errors.Is(e, repository.ErrNotFound) {
 		response.Error(c, http.StatusNotFound, constants.CodeNotFound, "资源不存在")
 		return
