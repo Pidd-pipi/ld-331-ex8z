@@ -1,0 +1,9 @@
+openapi: 3.0.3
+info: {title: 医院智能排班 API, version: 1.0.0}
+paths:
+  /healthz: {get: {summary: 健康检查}}
+  /api/v1/auth/login: {post: {summary: 登录}}
+  /api/v1/schedules: {get: {summary: 查询可视化排班表}}
+  /api/v1/schedules/generate: {post: {summary: 自动生成排班}}
+  /api/v1/shift-requests: {get: {summary: 查询调班申请}, post: {summary: 提交调班申请}}
+  /api/v1/schedules/statistics: {get: {summary: 月度工时统计}}

@@ -1,0 +1,4 @@
+import {createRouter,createWebHistory} from 'vue-router'
+import Login from '../views/Login.vue';import Layout from '../views/Layout.vue';import Dashboard from '../views/Dashboard.vue';import Schedule from '../views/Schedule.vue';import Requests from '../views/Requests.vue';import Statistics from '../views/Statistics.vue';import Settings from '../views/Settings.vue';import {auth} from '../stores/auth'
+const router=createRouter({history:createWebHistory(),routes:[{path:'/login',component:Login},{path:'/',component:Layout,children:[{path:'',component:Dashboard},{path:'schedule',component:Schedule},{path:'requests',component:Requests},{path:'statistics',component:Statistics},{path:'settings',component:Settings}]}]})
+router.beforeEach(to=>to.path!='/login'&&!auth.token?'/login':true);export default router

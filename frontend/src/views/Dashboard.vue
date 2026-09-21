@@ -1,0 +1,8 @@
+<template><div><div class="page-title"><div><h1>排班工作台</h1><p>清晰掌握科室人力与本月班次覆盖情况。</p></div><el-button type="primary" @click="$router.push('/schedule')">生成排班</el-button></div><el-row :gutter="18"><el-col v-for="card in cards" :key="card.label" :span="6"><el-card shadow="never" class="metric"><span>{{card.label}}</span><b>{{card.value}}</b><small>{{card.note}}</small></el-card></el-col></el-row><el-card class="mt"><template #header>近期调班申请</template><el-table :data="requests"><el-table-column prop="id" label="#" width="70"/><el-table-column label="申请人"><template #default="scope">{{scope.row.applicant?.name}}</template></el-table-column><el-table-column label="替班人"><template #default="scope">{{scope.row.substitute?.name}}</template></el-table-column><el-table-column prop="reason" label="原因"/><el-table-column prop="status" label="状态"/></el-table></el-card></div></template>
+<script setup lang="ts">
+import {onMounted, ref} from 'vue'
+import api from '../api/http'
+const cards=ref([{label:'本月已排班',value:'—',note:'班次记录'},{label:'在岗人员',value:'—',note:'可参与排班'},{label:'待审批调班',value:'—',note:'需要主管处理'},{label:'异常冲突',value:'0',note:'规则引擎检测'}])
+const requests=ref<any[]>([])
+onMounted(async () => { try { const [s, st, r]: any = await Promise.all([api.get('/schedules'),api.get('/staff'),api.get('/shift-requests')]); cards.value[0].value=String(s.length);cards.value[1].value=String(st.length);cards.value[2].value=String(r.filter((x:any)=>x.status==='pending').length);requests.value=r.slice(0,5) } catch (_error) {} })
+</script>

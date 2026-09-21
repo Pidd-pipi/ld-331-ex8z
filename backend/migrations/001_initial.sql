@@ -1,0 +1,1 @@
+-- GORM AutoMigrate 在应用启动时执行模型迁移。
